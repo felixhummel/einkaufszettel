@@ -1,0 +1,4 @@
+```
+mise i
+uv sync
+```

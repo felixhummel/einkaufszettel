@@ -1,0 +1,23 @@
+[project]
+name = "einkaufszettel"
+version = "0.1.0"
+description = "Pythonic Einkaufszettel API"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+    "ruff>=0.12.5",
+    "ty>=0.0.1a16",
+]
+
+[tool.ruff]
+line-length = 79
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.pyright]
+typeCheckingMode = "basic" # basedpyright less strict
