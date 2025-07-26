@@ -6,7 +6,7 @@ ruff:
 	ruff check .
 
 ty:
-	ty .
+	ty check .
 
 test:
 	pytest --doctest-modules
