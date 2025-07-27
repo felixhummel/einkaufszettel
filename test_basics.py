@@ -1,13 +1,27 @@
-from einkaufzettel import Zettelwirtschaft, Item
+import pytest
+
+from einkaufzettel import Zettel, Item
 
 
-def test_welcome_back():
+@pytest.fixture
+def zettel():
+    result = Zettel('Netto')
+    result.append('Apfel')
+    result.append(
+        Item(
+            name='Käse',
+            completed=True,
+        )
+    )
+    result.append(Item('Tomaten', 1.5, 'kg'))
+    result.append(Item('Zucchini', 2))
+    return result
+
+
+def test(zettel):
     """
     When the user comes back, a typical session might look like this.
     """
-    # Zettelwirtschaft is the central place to manage state that is *not* global.
-    zettelwirtschaft = Zettelwirtschaft()
-    zettel = zettelwirtschaft.get_latest_list()
     # Einkaufszettel has a name
     assert zettel.name == 'Netto'
     # Einkaufszettel behaves like a list

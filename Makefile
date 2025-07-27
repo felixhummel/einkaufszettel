@@ -9,4 +9,4 @@ ty:
 	ty check .
 
 test:
-	pytest --doctest-modules
+	pytest --doctest-modules --cov

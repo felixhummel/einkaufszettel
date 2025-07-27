@@ -9,6 +9,7 @@ dependencies = []
 [dependency-groups]
 dev = [
     "pytest>=8.4.1",
+    "pytest-cov>=6.2.1",
     "ruff>=0.12.5",
     "ty>=0.0.1a16",
 ]
@@ -21,3 +22,7 @@ quote-style = "single"
 
 [tool.pyright]
 typeCheckingMode = "basic" # basedpyright less strict
+
+[tool.coverage.report]
+fail_under = 100
+skip_covered = true

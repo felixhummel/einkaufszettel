@@ -59,18 +59,3 @@ class Zettel(list[Item]):
         else:
             item = Item(name=x)
         super().append(item)
-
-
-class Zettelwirtschaft:
-    def get_latest_list(self) -> Zettel:
-        zettel = Zettel('Netto')
-        zettel.append('Apfel')
-        zettel.append(
-            Item(
-                name='Käse',
-                completed=True,
-            )
-        )
-        zettel.append(Item('Tomaten', 1.5, 'kg'))
-        zettel.append(Item('Zucchini', 2))
-        return zettel
