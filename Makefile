@@ -1,6 +1,6 @@
 MAKEFLAGS += --always-make
 
-default: ruff ty test
+qa: ruff ty test
 
 ruff:
 	ruff check .
@@ -14,3 +14,19 @@ test:
 
 build:
 	uv build
+
+clean:
+	rm -rf build/ dist/
+
+pre-release: clean qa
+
+upload:
+	twine upload --repository pypi-felixhummel dist/*
+
+patch-release: pre-release
+	uv version --bump patch
+	make build upload
+
+minor-release: pre-release
+	uv version --bump minor
+	make build upload

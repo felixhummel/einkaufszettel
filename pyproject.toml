@@ -1,6 +1,6 @@
 [project]
 name = "einkaufszettel"
-version = "0.1.0"
+version = "0.1.2"
 description = "Pythonic Einkaufszettel API"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -12,6 +12,7 @@ dev = [
     "pytest>=8.4.1",
     "pytest-cov>=6.2.1",
     "ruff>=0.12.5",
+    "twine>=6.1.0",
     "ty>=0.0.1a16",
 ]
 
