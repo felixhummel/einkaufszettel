@@ -10,6 +10,7 @@ ty:
 
 test:
 	pytest --doctest-modules --cov
+	python -m doctest README.md
 
 build:
 	uv build
