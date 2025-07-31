@@ -8,11 +8,15 @@ dependencies = []
 
 [dependency-groups]
 dev = [
+    "ipython>=9.4.0",
     "pytest>=8.4.1",
     "pytest-cov>=6.2.1",
     "ruff>=0.12.5",
     "ty>=0.0.1a16",
 ]
+
+[tool.setuptools]
+py-modules = ["einkaufszettel"]
 
 [tool.ruff]
 line-length = 79

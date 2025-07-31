@@ -1,6 +1,6 @@
 import pytest
 
-from einkaufzettel import Zettel, Item
+from einkaufszettel import Zettel, Item
 
 
 @pytest.fixture
