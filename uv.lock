@@ -253,7 +253,7 @@ wheels = [
 [[package]]
 name = "einkaufszettel"
 version = "0.1.2"
-source = { virtual = "." }
+source = { editable = "." }
 
 [package.dev-dependencies]
 dev = [
