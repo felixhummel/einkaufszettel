@@ -3,22 +3,24 @@ URL configuration for einkaufszettel project.
 """
 
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path
 from django.http import JsonResponse
 from .web import api
 
 
-def api_root(request):
+def api_root(request):  # pyright: ignore[reportUnusedParameter]
     """Simple API root endpoint"""
-    return JsonResponse({
-        "message": "Welcome to Einkaufszettel API",
-        "version": "1.0.0",
-        "endpoints": {
-            "api_docs": "/api/docs",
-            "zettel": "/api/zettel/",
-            "items": "/api/items/",
+    return JsonResponse(
+        {
+            'message': 'Welcome to Einkaufszettel API',
+            'version': '1.0.0',
+            'endpoints': {
+                'api_docs': '/api/docs',
+                'zettel': '/api/zettel/',
+                'items': '/api/items/',
+            },
         }
-    })
+    )
 
 
 urlpatterns = [

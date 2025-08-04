@@ -1,6 +1,8 @@
 [env]
 _.python.venv = { path = ".venv" }
 UV_PREVIEW = 1
+DEBUG = true
+SECRET_KEY = 'Ieku6oi4thaD'
 
 [tools]
 uv = "latest"

@@ -41,9 +41,9 @@ def setup_django():
 
 setup_django()
 
-from einkaufszettel.models import Zettel, Item
-from einkaufszettel.domain import format_qty
-from django.db import connection
+from einkaufszettel.models import Zettel, Item  # noqa: E402
+from einkaufszettel.domain import format_qty  # noqa: E402
+from django.db import connection  # noqa: E402
 
 
 def create_tables():
@@ -234,7 +234,7 @@ def example_statistics():
     total_items = Item.objects.count()
     completed_items = Item.objects.filter(completed=True).count()
 
-    print(f"\n📊 Summary Statistics:")
+    print("\n📊 Summary Statistics:")
     print(f"   Total shopping lists: {total_lists}")
     print(f"   Total items: {total_items}")
     print(f"   Completed items: {completed_items}")
@@ -243,7 +243,7 @@ def example_statistics():
     # Most common units
     from django.db.models import Count
     unit_stats = Item.objects.values('unit').annotate(count=Count('unit')).order_by('-count')
-    print(f"\n   Most common units:")
+    print("\n   Most common units:")
     for stat in unit_stats:
         print(f"     {stat['unit']}: {stat['count']} items")
 

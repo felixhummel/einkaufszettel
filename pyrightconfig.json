@@ -1,0 +1,8 @@
+{
+  "typeCheckingMode": "basic",
+  "django": {
+    "settingsModule": "einkaufszettel.settings"
+  },
+  "stubPath": "typings",
+  "extraPaths": ["src"]
+}

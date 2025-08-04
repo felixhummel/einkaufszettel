@@ -1,10 +1,10 @@
 from ninja import NinjaAPI, Schema
 from ninja.pagination import paginate
 from django.shortcuts import get_object_or_404
-from django.http import Http404
+
 from typing import List, Optional
 from .models import Zettel, Item
-from .domain import DEFAULT_UNIT, format_qty
+from .domain import DEFAULT_UNIT
 
 
 api = NinjaAPI(title="Einkaufszettel API", version="1.0.0")
