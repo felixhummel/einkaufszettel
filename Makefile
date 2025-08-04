@@ -9,4 +9,4 @@ ty:
 	ty check --ignore unresolved-attribute .
 
 test:
-	pytest --doctest-modules
+	pytest tests/

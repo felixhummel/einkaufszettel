@@ -68,13 +68,13 @@ curl -X POST http://localhost:8000/api/zettel/ \
   -H "Content-Type: application/json" \
   -d '{"name": "Weekly Groceries"}'
 
-# Add items to the list (assuming zettel_id=1)
-curl -X POST http://localhost:8000/api/zettel/1/items/ \
+# Add items to the list (assuming zettel slug is "weekly-groceries")
+curl -X POST http://localhost:8000/api/zettel/weekly-groceries/items/ \
   -H "Content-Type: application/json" \
   -d '{"name": "Apfel", "qty": 6, "unit": "Stück"}'
 
 # Get markdown representation
-curl http://localhost:8000/api/zettel/1/markdown/
+curl http://localhost:8000/api/zettel/weekly-groceries/markdown/
 ```
 
 ## API Endpoints
@@ -99,13 +99,13 @@ Content-Type: application/json
 
 #### Get a specific shopping list
 ```http
-GET /api/zettel/{zettel_id}/
+GET /api/zettel/{zettel_slug}/
 ```
 **Response:** Complete shopping list with all items.
 
 #### Update a shopping list
 ```http
-PUT /api/zettel/{zettel_id}/
+PUT /api/zettel/{zettel_slug}/
 Content-Type: application/json
 
 {
@@ -115,13 +115,13 @@ Content-Type: application/json
 
 #### Delete a shopping list
 ```http
-DELETE /api/zettel/{zettel_id}/
+DELETE /api/zettel/{zettel_slug}/
 ```
 
 #### Get shopping list as Markdown
 ```http
-GET /api/zettel/{zettel_id}/markdown/
-GET /api/zettel/{zettel_id}/markdown/?completed=true
+GET /api/zettel/{zettel_slug}/markdown/
+GET /api/zettel/{zettel_slug}/markdown/?completed=true
 ```
 **Parameters:**
 - `completed` (optional): Include completed items in markdown output
@@ -130,15 +130,15 @@ GET /api/zettel/{zettel_id}/markdown/?completed=true
 
 #### List items in a shopping list
 ```http
-GET /api/zettel/{zettel_id}/items/
-GET /api/zettel/{zettel_id}/items/?completed=false
+GET /api/zettel/{zettel_slug}/items/
+GET /api/zettel/{zettel_slug}/items/?completed=false
 ```
 **Parameters:**
 - `completed` (optional): Filter by completion status
 
 #### Add an item to a shopping list
 ```http
-POST /api/zettel/{zettel_id}/items/
+POST /api/zettel/{zettel_slug}/items/
 Content-Type: application/json
 
 {
@@ -151,12 +151,12 @@ Content-Type: application/json
 
 #### Get a specific item
 ```http
-GET /api/items/{item_id}/
+GET /api/items/{item_slug}/
 ```
 
 #### Update an item
 ```http
-PUT /api/items/{item_id}/
+PUT /api/items/{item_slug}/
 Content-Type: application/json
 
 {
@@ -169,19 +169,19 @@ Content-Type: application/json
 
 #### Delete an item
 ```http
-DELETE /api/items/{item_id}/
+DELETE /api/items/{item_slug}/
 ```
 
 #### Toggle item completion
 ```http
-PATCH /api/items/{item_id}/toggle/
+PATCH /api/items/{item_slug}/toggle/
 ```
 
 ### Bulk Operations
 
 #### Bulk create items
 ```http
-POST /api/zettel/{zettel_id}/items/bulk/
+POST /api/zettel/{zettel_slug}/items/bulk/
 Content-Type: application/json
 
 [
@@ -193,24 +193,24 @@ Content-Type: application/json
 
 #### Complete all items
 ```http
-PATCH /api/zettel/{zettel_id}/items/complete-all/
+PATCH /api/zettel/{zettel_slug}/items/complete-all/
 ```
 
 #### Uncomplete all items
 ```http
-PATCH /api/zettel/{zettel_id}/items/uncomplete-all/
+PATCH /api/zettel/{zettel_slug}/items/uncomplete-all/
 ```
 
 ## Data Models
 
 ### Zettel (Shopping List)
-- `id`: Integer (auto-generated)
+- `slug`: String (auto-generated from name, unique)
 - `name`: String (max 200 chars)
 - `created_at`: DateTime (auto-generated)
 - `updated_at`: DateTime (auto-updated)
 
 ### Item
-- `id`: Integer (auto-generated)
+- `slug`: String (auto-generated from name, unique per zettel)
 - `zettel`: Foreign key to Zettel
 - `name`: String (max 200 chars)
 - `qty`: Float (default: 1.0)
@@ -219,18 +219,73 @@ PATCH /api/zettel/{zettel_id}/items/uncomplete-all/
 - `created_at`: DateTime (auto-generated)
 - `updated_at`: DateTime (auto-updated)
 
+## Slug Generation
+
+**⚠️ Important:** The API now uses slugs instead of numeric IDs for identifying resources. Slugs are automatically generated from names and provide human-readable URLs.
+
+### How Slugs Are Generated
+
+1. **Convert to lowercase**: "My Shopping List" → "my shopping list"
+2. **Replace spaces with hyphens**: "my shopping list" → "my-shopping-list"
+3. **Remove special characters**: "List with émojis! 🛒 & symbols" → "list-with-emojis-symbols"
+4. **Ensure uniqueness**: If a slug already exists, append a number
+
+### Examples
+
+| Name | Generated Slug |
+|------|----------------|
+| "My Shopping List" | `my-shopping-list` |
+| "Einkauf für heute!" | `einkauf-fur-heute` |
+| "List with émojis 🛒 & symbols" | `list-with-emojis-symbols` |
+| "My Shopping List" (duplicate) | `my-shopping-list-2` |
+| "UPPERCASE list" | `uppercase-list` |
+
+### Uniqueness Rules
+
+- **Zettel slugs**: Must be unique across all shopping lists
+- **Item slugs**: Must be unique within each shopping list (same item name can exist in different lists)
+
+### Automatic Updates
+
+Slugs are automatically regenerated when names change:
+
+```python
+# Create a zettel
+zettel = Zettel.objects.create(name="Original Name")
+print(zettel.slug)  # "original-name"
+
+# Update the name
+zettel.name = "Updated Name"
+zettel.save()
+print(zettel.slug)  # "updated-name"
+```
+
+### API Usage
+
+Use slugs in all API endpoints:
+
+```bash
+# ✅ Correct - using slug
+GET /api/zettel/my-shopping-list/
+GET /api/items/milk/
+
+# ❌ Deprecated - using numeric ID
+GET /api/zettel/1/
+GET /api/items/1/
+```
+
 ## Response Schemas
 
 ### ZettelSchema
 ```json
 {
-  "id": 1,
+  "slug": "shopping-list",
   "name": "Shopping List",
   "created_at": "2024-01-01T12:00:00Z",
   "updated_at": "2024-01-01T12:00:00Z",
   "items": [
     {
-      "id": 1,
+      "slug": "apfel",
       "name": "Apfel",
       "qty": 6.0,
       "unit": "Stück",
@@ -245,7 +300,7 @@ PATCH /api/zettel/{zettel_id}/items/uncomplete-all/
 ### ZettelListSchema
 ```json
 {
-  "id": 1,
+  "slug": "shopping-list",
   "name": "Shopping List",
   "created_at": "2024-01-01T12:00:00Z",
   "updated_at": "2024-01-01T12:00:00Z",
@@ -256,7 +311,7 @@ PATCH /api/zettel/{zettel_id}/items/uncomplete-all/
 ### ItemSchema
 ```json
 {
-  "id": 1,
+  "slug": "apfel",
   "name": "Apfel",
   "qty": 6.0,
   "unit": "Stück",
@@ -303,7 +358,7 @@ base_url = "http://localhost:8000/api"
 zettel_data = {"name": "Weekly Groceries"}
 response = requests.post(f"{base_url}/zettel/", json=zettel_data)
 zettel = response.json()
-zettel_id = zettel["id"]
+zettel_slug = zettel["slug"]  # "weekly-groceries"
 
 # 2. Add items
 items = [
@@ -313,26 +368,26 @@ items = [
 ]
 
 for item in items:
-    requests.post(f"{base_url}/zettel/{zettel_id}/items/", json=item)
+    requests.post(f"{base_url}/zettel/{zettel_slug}/items/", json=item)
 
 # 3. Get current state
-response = requests.get(f"{base_url}/zettel/{zettel_id}/")
+response = requests.get(f"{base_url}/zettel/{zettel_slug}/")
 print(json.dumps(response.json(), indent=2))
 
 # 4. Mark first item as completed
-items_response = requests.get(f"{base_url}/zettel/{zettel_id}/items/")
-first_item_id = items_response.json()[0]["id"]
-requests.patch(f"{base_url}/items/{first_item_id}/toggle/")
+items_response = requests.get(f"{base_url}/zettel/{zettel_slug}/items/")
+first_item_slug = items_response.json()[0]["slug"]  # "apfel"
+requests.patch(f"{base_url}/items/{first_item_slug}/toggle/")
 
 # 5. Get markdown representation
-markdown_response = requests.get(f"{base_url}/zettel/{zettel_id}/markdown/")
+markdown_response = requests.get(f"{base_url}/zettel/{zettel_slug}/markdown/")
 print(markdown_response.json()["markdown"])
 
 # 6. Complete all remaining items
-requests.patch(f"{base_url}/zettel/{zettel_id}/items/complete-all/")
+requests.patch(f"{base_url}/zettel/{zettel_slug}/items/complete-all/")
 
 # 7. Get final markdown with completed items
-final_markdown = requests.get(f"{base_url}/zettel/{zettel_id}/markdown/?completed=true")
+final_markdown = requests.get(f"{base_url}/zettel/{zettel_slug}/markdown/?completed=true")
 print(final_markdown.json()["markdown"])
 ```
 

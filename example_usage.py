@@ -62,7 +62,7 @@ def print_separator(title):
 
 def print_zettel(zettel):
     """Print a formatted zettel with all its items"""
-    print(f"\n📋 {zettel.name} (ID: {zettel.id})")
+    print(f"\n📋 {zettel.name} (slug: {zettel.slug})")
     print(f"   Created: {zettel.created_at.strftime('%Y-%m-%d %H:%M:%S')}")
 
     items = zettel.items.all()
@@ -88,8 +88,8 @@ def example_basic_operations():
     netto_list = Zettel.objects.create(name="Netto Einkauf")
     rewe_list = Zettel.objects.create(name="REWE Großeinkauf")
 
-    print(f"Created: {netto_list.name}")
-    print(f"Created: {rewe_list.name}")
+    print(f"Created: {netto_list.name} (slug: {netto_list.slug})")
+    print(f"Created: {rewe_list.name} (slug: {rewe_list.slug})")
 
     # Add items to the first list
     print("\n2. Adding items to Netto list...")
@@ -102,7 +102,7 @@ def example_basic_operations():
 
     for item_data in items_data:
         item = Item.objects.create(zettel=netto_list, **item_data)
-        print(f"Added: {item.name}")
+        print(f"Added: {item.name} (slug: {item.slug})")
 
     # Display the list
     print_zettel(netto_list)
@@ -205,7 +205,7 @@ def example_filtering_and_queries():
     for zettel in all_zettel:
         item_count = zettel.items.count()
         completed_count = zettel.items.filter(completed=True).count()
-        print(f"   {zettel.name}: {completed_count}/{item_count} completed")
+        print(f"   {zettel.name} ({zettel.slug}): {completed_count}/{item_count} completed")
 
     # Find incomplete items across all lists
     print("\n2. All incomplete items:")
@@ -223,7 +223,57 @@ def example_filtering_and_queries():
     print("\n4. Items with quantity > 1:")
     bulk_items = Item.objects.filter(qty__gt=1).order_by('-qty')
     for item in bulk_items:
-        print(f"   {item.name}: {format_qty(item.qty)} {item.unit}")
+        print(f"   {item.name} ({item.slug}): {format_qty(item.qty)} {item.unit}")
+
+
+def example_slug_functionality():
+    """Demonstrate slug generation and usage"""
+    print_separator("Slug Functionality")
+
+    print("\n1. Creating zettel with various names to show slug generation...")
+
+    # Create zettel with different name patterns
+    test_cases = [
+        "My Shopping List",
+        "Einkauf für heute!",
+        "List with émojis 🛒 & symbols",
+        "My Shopping List",  # Duplicate to show numbering
+        "UPPERCASE list",
+        "list   with    spaces",
+    ]
+
+    created_zettel = []
+    for name in test_cases:
+        zettel = Zettel.objects.create(name=name)
+        created_zettel.append(zettel)
+        print(f"   '{name}' -> slug: '{zettel.slug}'")
+
+    print("\n2. Creating items with duplicate names in same zettel...")
+    first_zettel = created_zettel[0]
+
+    item_names = ["Milk", "Milk", "Organic Milk (2%)", "milk"]
+    for name in item_names:
+        item = Item.objects.create(zettel=first_zettel, name=name)
+        print(f"   '{name}' -> slug: '{item.slug}'")
+
+    print("\n3. Updating names to show slug regeneration...")
+    first_zettel.name = "Updated Shopping List"
+    first_zettel.save()
+    print(f"   Updated zettel slug: '{first_zettel.slug}'")
+
+    first_item = first_zettel.items.first()
+    first_item.name = "Almond Milk"
+    first_item.save()
+    print(f"   Updated item slug: '{first_item.slug}'")
+
+    print("\n4. Demonstrating slug-based lookups...")
+    # Find zettel by slug
+    found_zettel = Zettel.objects.get(slug=first_zettel.slug)
+    print(f"   Found zettel by slug '{first_zettel.slug}': {found_zettel.name}")
+
+    # Find item by slug within zettel
+    found_item = first_zettel.items.get(slug=first_item.slug)
+    print(f"   Found item by slug '{first_item.slug}': {found_item.name}")
 
 
 def example_statistics():
@@ -277,6 +327,7 @@ def main():
         netto_list, rewe_list = example_basic_operations()
         example_bulk_operations(netto_list)
         example_markdown_generation(netto_list)
+        example_slug_functionality()
         example_filtering_and_queries()
         example_statistics()
 
@@ -300,6 +351,9 @@ def main():
     print("  1. Start the Django development server: python manage.py runserver")
     print("  2. Visit http://localhost:8000/api/docs for interactive API docs")
     print("  3. Use the HTTP API endpoints as documented in API_README.md")
+    print("  4. Note: API now uses slugs instead of IDs for identification!")
+    print("     - GET /api/zettel/my-shopping-list/ instead of /api/zettel/1/")
+    print("     - GET /api/items/milk/ instead of /api/items/1/")
 
 
 if __name__ == '__main__':

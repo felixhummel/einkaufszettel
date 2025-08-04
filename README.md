@@ -2,7 +2,7 @@
 Ever wanted to manage your (in-memory) shopping list with Python?
 Then look no further!
 
-```python
+```doctest
 >>> from einkaufszettel import Zettel, Item
 >>>
 >>> zettel = Zettel('Netto')
@@ -25,7 +25,7 @@ Zettel(name='Netto')
 
 
 # Development
-```
+```bash
 mise install
 uv sync
 make
