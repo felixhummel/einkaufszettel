@@ -1,5 +1,6 @@
 [env]
 _.python.venv = { path = ".venv" }
+UV_PREVIEW = 1
 
 [tools]
 uv = "latest"

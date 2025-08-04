@@ -6,6 +6,11 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
 
+[build-system]
+# https://youtu.be/mFyE9xgeKcA?t=1062 🤫
+requires = ["uv_build"]
+build-backend = "uv_build"
+
 [dependency-groups]
 dev = [
     "ipython>=9.4.0",
@@ -15,9 +20,6 @@ dev = [
     "twine>=6.1.0",
     "ty>=0.0.1a16",
 ]
-
-[tool.setuptools]
-py-modules = ["einkaufszettel"]
 
 [tool.ruff]
 line-length = 79
