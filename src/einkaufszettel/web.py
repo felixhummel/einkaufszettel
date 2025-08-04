@@ -171,35 +171,39 @@ def create_item(request, zettel_slug: str, data: ItemCreateSchema):
     return item
 
 
-@api.get("/items/{item_slug}/", response=ItemSchema)
-def get_item(request, item_slug: str):
+@api.get("/zettel/{zettel_slug}/{item_slug}/", response=ItemSchema)
+def get_item(request, zettel_slug: str, item_slug: str):
     """Get a specific item"""
-    item = get_object_or_404(Item, slug=item_slug)
+    zettel = get_object_or_404(Zettel, slug=zettel_slug)
+    item = get_object_or_404(Item, zettel=zettel, slug=item_slug)
     return item
 
 
-@api.put("/items/{item_slug}/", response=ItemSchema)
-def update_item(request, item_slug: str, data: ItemUpdateSchema):
+@api.put("/zettel/{zettel_slug}/{item_slug}/", response=ItemSchema)
+def update_item(request, zettel_slug: str, item_slug: str, data: ItemUpdateSchema):
     """Update an item"""
-    item = get_object_or_404(Item, slug=item_slug)
+    zettel = get_object_or_404(Zettel, slug=zettel_slug)
+    item = get_object_or_404(Item, zettel=zettel, slug=item_slug)
     for attr, value in data.dict(exclude_unset=True).items():
         setattr(item, attr, value)
     item.save()
     return item
 
 
-@api.delete("/items/{item_slug}/")
-def delete_item(request, item_slug: str):
+@api.delete("/zettel/{zettel_slug}/{item_slug}/")
+def delete_item(request, zettel_slug: str, item_slug: str):
     """Delete an item"""
-    item = get_object_or_404(Item, slug=item_slug)
+    zettel = get_object_or_404(Zettel, slug=zettel_slug)
+    item = get_object_or_404(Item, zettel=zettel, slug=item_slug)
     item.delete()
     return {"success": True}
 
 
-@api.patch("/items/{item_slug}/toggle/", response=ItemSchema)
-def toggle_item_completed(request, item_slug: str):
+@api.patch("/zettel/{zettel_slug}/{item_slug}/toggle/", response=ItemSchema)
+def toggle_item_completed(request, zettel_slug: str, item_slug: str):
     """Toggle the completed status of an item"""
-    item = get_object_or_404(Item, slug=item_slug)
+    zettel = get_object_or_404(Zettel, slug=zettel_slug)
+    item = get_object_or_404(Item, zettel=zettel, slug=item_slug)
     item.completed = not item.completed
     item.save()
     return item

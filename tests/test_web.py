@@ -249,7 +249,7 @@ class TestEinkaufszettelAPI(TestCase):
 
     def test_get_item(self):
         """Test getting a specific item"""
-        response = self.client.get(f'/api/items/{self.item1.slug}/')
+        response = self.client.get(f'/api/zettel/{self.zettel.slug}/{self.item1.slug}/')
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
@@ -264,7 +264,7 @@ class TestEinkaufszettelAPI(TestCase):
             "completed": True
         }
         response = self.client.put(
-            f'/api/items/{self.item1.slug}/',
+            f'/api/zettel/{self.zettel.slug}/{self.item1.slug}/',
             data=json.dumps(payload),
             content_type='application/json'
         )
@@ -285,7 +285,7 @@ class TestEinkaufszettelAPI(TestCase):
     def test_delete_item(self):
         """Test deleting an item"""
         item_slug = self.item1.slug
-        response = self.client.delete(f'/api/items/{item_slug}/')
+        response = self.client.delete(f'/api/zettel/{self.zettel.slug}/{item_slug}/')
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
@@ -300,7 +300,7 @@ class TestEinkaufszettelAPI(TestCase):
         self.assertFalse(self.item1.completed)
 
         # Toggle to completed
-        response = self.client.patch(f'/api/items/{self.item1.slug}/toggle/')
+        response = self.client.patch(f'/api/zettel/{self.zettel.slug}/{self.item1.slug}/toggle/')
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
@@ -311,7 +311,7 @@ class TestEinkaufszettelAPI(TestCase):
         self.assertTrue(self.item1.completed)
 
         # Toggle back to not completed
-        response = self.client.patch(f'/api/items/{self.item1.slug}/toggle/')
+        response = self.client.patch(f'/api/zettel/{self.zettel.slug}/{self.item1.slug}/toggle/')
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
@@ -394,7 +394,7 @@ class TestEinkaufszettelAPI(TestCase):
         """Test updating an item that doesn't exist"""
         payload = {"name": "Updated Item"}
         response = self.client.put(
-            '/api/items/non-existent-slug/',
+            f'/api/zettel/{self.zettel.slug}/non-existent-slug/',
             data=json.dumps(payload),
             content_type='application/json'
         )
@@ -402,8 +402,46 @@ class TestEinkaufszettelAPI(TestCase):
 
     def test_delete_nonexistent_item(self):
         """Test deleting an item that doesn't exist"""
-        response = self.client.delete('/api/items/non-existent-slug/')
+        response = self.client.delete(f'/api/zettel/{self.zettel.slug}/non-existent-slug/')
         self.assertEqual(response.status_code, 404)
+
+    def test_hierarchical_access_control_get_item(self):
+        """Test that items can't be accessed through wrong zettel path"""
+        # Try to access item1 (belongs to self.zettel) through self.zettel2 path
+        response = self.client.get(f'/api/zettel/{self.zettel2.slug}/{self.item1.slug}/')
+        self.assertEqual(response.status_code, 404)
+
+    def test_hierarchical_access_control_update_item(self):
+        """Test that items can't be updated through wrong zettel path"""
+        payload = {"name": "Hacked Item"}
+        response = self.client.put(
+            f'/api/zettel/{self.zettel2.slug}/{self.item1.slug}/',
+            data=json.dumps(payload),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 404)
+
+        # Verify the item wasn't changed
+        self.item1.refresh_from_db()
+        self.assertEqual(self.item1.name, "Apfel")
+
+    def test_hierarchical_access_control_delete_item(self):
+        """Test that items can't be deleted through wrong zettel path"""
+        response = self.client.delete(f'/api/zettel/{self.zettel2.slug}/{self.item1.slug}/')
+        self.assertEqual(response.status_code, 404)
+
+        # Verify the item still exists
+        self.assertTrue(Item.objects.filter(slug=self.item1.slug).exists())
+
+    def test_hierarchical_access_control_toggle_item(self):
+        """Test that items can't be toggled through wrong zettel path"""
+        original_completed = self.item1.completed
+        response = self.client.patch(f'/api/zettel/{self.zettel2.slug}/{self.item1.slug}/toggle/')
+        self.assertEqual(response.status_code, 404)
+
+        # Verify the item's completed status wasn't changed
+        self.item1.refresh_from_db()
+        self.assertEqual(self.item1.completed, original_completed)
 
     def test_empty_zettel_markdown(self):
         """Test markdown generation for empty zettel"""
