@@ -1,8 +1,17 @@
 import os
+import warnings
 from pathlib import Path
 
 # Build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
+
+# Suppress Pydantic deprecation warnings from django-ninja
+# TODO: Remove this when django-ninja updates to use ConfigDict instead of class-based config
+warnings.filterwarnings(
+    "ignore",
+    message="Support for class-based `config` is deprecated.*",
+    category=DeprecationWarning
+)
 
 SECRET_KEY = os.environ['SECRET_KEY']
 
