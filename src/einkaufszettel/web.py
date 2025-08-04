@@ -1,13 +1,16 @@
+from django.urls import reverse
 from ninja import NinjaAPI, Schema
 from ninja.pagination import paginate
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 
 from typing import List, Optional
 from .models import Zettel, Item
 from .domain import DEFAULT_UNIT
 
 
-api = NinjaAPI(title="Einkaufszettel API", version="1.0.0")
+api = NinjaAPI(
+    title='Einkaufszettel API', version='1.0.0', urls_namespace='ek'
+)
 
 
 # Schemas
@@ -87,29 +90,57 @@ class ZettelListSchema(Schema):
         return obj.items.count()
 
 
+class Link(Schema):
+    url: str
+    name: str
+
+    @classmethod
+    def from_view_name(cls, name: str):
+        url = reverse(name)
+        return cls(url=url, name=url)
+
+
+@api.get('/')
+def index(request):
+    #  admin/
+    # openapi.json [name='openapi-json']
+    # docs [name='openapi-view']
+    # zettel/ [name='list_zettel']
+    links = [
+        Link.from_view_name(x)
+        for x in [
+            'admin:index',
+            'ek:openapi-json',
+            'ek:openapi-view',
+            'ek:list_zettel',
+        ]
+    ]
+    return render(request, 'einkaufszettel/links.txt', {'links': links})
+
+
 # Zettel endpoints
-@api.get("/zettel/", response=List[ZettelListSchema])
+@api.get('/zettel/', response=List[ZettelListSchema])
 @paginate
 def list_zettel(request):
     """List all shopping lists"""
     return Zettel.objects.all()
 
 
-@api.post("/zettel/", response=ZettelSchema)
+@api.post('/zettel/', response=ZettelSchema)
 def create_zettel(request, data: ZettelCreateSchema):
     """Create a new shopping list"""
     zettel = Zettel.objects.create(**data.dict())
     return zettel
 
 
-@api.get("/zettel/{zettel_slug}/", response=ZettelSchema)
+@api.get('/zettel/{zettel_slug}/', response=ZettelSchema)
 def get_zettel(request, zettel_slug: str):
     """Get a specific shopping list with all items"""
     zettel = get_object_or_404(Zettel, slug=zettel_slug)
     return zettel
 
 
-@api.put("/zettel/{zettel_slug}/", response=ZettelSchema)
+@api.put('/zettel/{zettel_slug}/', response=ZettelSchema)
 def update_zettel(request, zettel_slug: str, data: ZettelUpdateSchema):
     """Update a shopping list"""
     zettel = get_object_or_404(Zettel, slug=zettel_slug)
@@ -119,15 +150,15 @@ def update_zettel(request, zettel_slug: str, data: ZettelUpdateSchema):
     return zettel
 
 
-@api.delete("/zettel/{zettel_slug}/")
+@api.delete('/zettel/{zettel_slug}/')
 def delete_zettel(request, zettel_slug: str):
     """Delete a shopping list"""
     zettel = get_object_or_404(Zettel, slug=zettel_slug)
     zettel.delete()
-    return {"success": True}
+    return {'success': True}
 
 
-@api.get("/zettel/{zettel_slug}/markdown/")
+@api.get('/zettel/{zettel_slug}/markdown/')
 def get_zettel_markdown(request, zettel_slug: str, completed: bool = False):
     """Get shopping list as markdown"""
     zettel = get_object_or_404(Zettel, slug=zettel_slug)
@@ -136,22 +167,26 @@ def get_zettel_markdown(request, zettel_slug: str, completed: bool = False):
     from .domain import Zettel as DomainZettel, Item as DomainItem
 
     domain_zettel = DomainZettel(name=zettel.name)
-    items = zettel.items.all() if completed else zettel.items.filter(completed=False)
+    items = (
+        zettel.items.all()
+        if completed
+        else zettel.items.filter(completed=False)
+    )
 
     for item in items:
         domain_item = DomainItem(
             name=item.name,
             qty=item.qty,
             unit=item.unit,
-            completed=item.completed
+            completed=item.completed,
         )
         domain_zettel.append(domain_item)
 
-    return {"markdown": domain_zettel.markdown(completed=completed)}
+    return {'markdown': domain_zettel.markdown(completed=completed)}
 
 
 # Item endpoints
-@api.get("/zettel/{zettel_slug}/items/", response=List[ItemSchema])
+@api.get('/zettel/{zettel_slug}/items/', response=List[ItemSchema])
 def list_items(request, zettel_slug: str, completed: Optional[bool] = None):
     """List items in a shopping list"""
     zettel = get_object_or_404(Zettel, slug=zettel_slug)
@@ -163,7 +198,7 @@ def list_items(request, zettel_slug: str, completed: Optional[bool] = None):
     return items
 
 
-@api.post("/zettel/{zettel_slug}/items/", response=ItemSchema)
+@api.post('/zettel/{zettel_slug}/items/', response=ItemSchema)
 def create_item(request, zettel_slug: str, data: ItemCreateSchema):
     """Add an item to a shopping list"""
     zettel = get_object_or_404(Zettel, slug=zettel_slug)
@@ -171,7 +206,7 @@ def create_item(request, zettel_slug: str, data: ItemCreateSchema):
     return item
 
 
-@api.get("/zettel/{zettel_slug}/{item_slug}/", response=ItemSchema)
+@api.get('/zettel/{zettel_slug}/{item_slug}/', response=ItemSchema)
 def get_item(request, zettel_slug: str, item_slug: str):
     """Get a specific item"""
     zettel = get_object_or_404(Zettel, slug=zettel_slug)
@@ -179,8 +214,10 @@ def get_item(request, zettel_slug: str, item_slug: str):
     return item
 
 
-@api.put("/zettel/{zettel_slug}/{item_slug}/", response=ItemSchema)
-def update_item(request, zettel_slug: str, item_slug: str, data: ItemUpdateSchema):
+@api.put('/zettel/{zettel_slug}/{item_slug}/', response=ItemSchema)
+def update_item(
+    request, zettel_slug: str, item_slug: str, data: ItemUpdateSchema
+):
     """Update an item"""
     zettel = get_object_or_404(Zettel, slug=zettel_slug)
     item = get_object_or_404(Item, zettel=zettel, slug=item_slug)
@@ -190,16 +227,16 @@ def update_item(request, zettel_slug: str, item_slug: str, data: ItemUpdateSchem
     return item
 
 
-@api.delete("/zettel/{zettel_slug}/{item_slug}/")
+@api.delete('/zettel/{zettel_slug}/{item_slug}/')
 def delete_item(request, zettel_slug: str, item_slug: str):
     """Delete an item"""
     zettel = get_object_or_404(Zettel, slug=zettel_slug)
     item = get_object_or_404(Item, zettel=zettel, slug=item_slug)
     item.delete()
-    return {"success": True}
+    return {'success': True}
 
 
-@api.patch("/zettel/{zettel_slug}/{item_slug}/toggle/", response=ItemSchema)
+@api.patch('/zettel/{zettel_slug}/{item_slug}/toggle/', response=ItemSchema)
 def toggle_item_completed(request, zettel_slug: str, item_slug: str):
     """Toggle the completed status of an item"""
     zettel = get_object_or_404(Zettel, slug=zettel_slug)
@@ -210,8 +247,10 @@ def toggle_item_completed(request, zettel_slug: str, item_slug: str):
 
 
 # Bulk operations
-@api.post("/zettel/{zettel_slug}/items/bulk/", response=List[ItemSchema])
-def bulk_create_items(request, zettel_slug: str, items: List[ItemCreateSchema]):
+@api.post('/zettel/{zettel_slug}/items/bulk/', response=List[ItemSchema])
+def bulk_create_items(
+    request, zettel_slug: str, items: List[ItemCreateSchema]
+):
     """Add multiple items to a shopping list"""
     zettel = get_object_or_404(Zettel, slug=zettel_slug)
     created_items = []
@@ -223,17 +262,17 @@ def bulk_create_items(request, zettel_slug: str, items: List[ItemCreateSchema]):
     return created_items
 
 
-@api.patch("/zettel/{zettel_slug}/items/complete-all/")
+@api.patch('/zettel/{zettel_slug}/items/complete-all/')
 def complete_all_items(request, zettel_slug: str):
     """Mark all items in a shopping list as completed"""
     zettel = get_object_or_404(Zettel, slug=zettel_slug)
     updated_count = zettel.items.filter(completed=False).update(completed=True)
-    return {"updated_count": updated_count}
+    return {'updated_count': updated_count}
 
 
-@api.patch("/zettel/{zettel_slug}/items/uncomplete-all/")
+@api.patch('/zettel/{zettel_slug}/items/uncomplete-all/')
 def uncomplete_all_items(request, zettel_slug: str):
     """Mark all items in a shopping list as not completed"""
     zettel = get_object_or_404(Zettel, slug=zettel_slug)
     updated_count = zettel.items.filter(completed=True).update(completed=False)
-    return {"updated_count": updated_count}
+    return {'updated_count': updated_count}
