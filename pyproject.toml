@@ -41,12 +41,5 @@ fail_under = 100
 skip_covered = true
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "einkaufszettel.test_settings"
-python_files = ["test_*.py", "*_test.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
+DJANGO_SETTINGS_MODULE = "einkaufszettel.demo_settings"
 addopts = "--tb=short"
-env = [
-    "SECRET_KEY=test-secret-key-for-pytest",
-    "DEBUG=true",
-]
