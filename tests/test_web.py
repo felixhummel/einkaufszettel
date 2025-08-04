@@ -1,4 +1,3 @@
-
 import django
 from django.conf import settings
 from django.test import TestCase
@@ -38,36 +37,36 @@ class TestEinkaufszettelAPI(TestCase):
         self.client = Client()
 
         # Create test zettel
-        self.zettel = Zettel.objects.create(name="Test Shopping List")
-        self.zettel2 = Zettel.objects.create(name="Another List")
+        self.zettel = Zettel.objects.create(name='Test Shopping List')
+        self.zettel2 = Zettel.objects.create(name='Another List')
 
         # Create test items
         self.item1 = Item.objects.create(
             zettel=self.zettel,
-            name="Apfel",
+            name='Apfel',
             qty=1.0,
-            unit="Stück",
-            completed=False
+            unit='Stück',
+            completed=False,
         )
         self.item2 = Item.objects.create(
             zettel=self.zettel,
-            name="Käse",
+            name='Käse',
             qty=1.0,
-            unit="Stück",
-            completed=True
+            unit='Stück',
+            completed=True,
         )
         self.item3 = Item.objects.create(
             zettel=self.zettel,
-            name="Tomaten",
+            name='Tomaten',
             qty=1.5,
-            unit="kg",
-            completed=False
+            unit='kg',
+            completed=False,
         )
 
     # Zettel Tests
     def test_list_zettel(self):
         """Test listing all zettel"""
-        response = self.client.get('/api/zettel/')
+        response = self.client.get('/zettel/')
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
@@ -76,64 +75,64 @@ class TestEinkaufszettelAPI(TestCase):
 
         # Check that zettel names are present
         names = [item['name'] for item in data['items']]
-        self.assertIn("Test Shopping List", names)
-        self.assertIn("Another List", names)
+        self.assertIn('Test Shopping List', names)
+        self.assertIn('Another List', names)
 
     def test_create_zettel(self):
         """Test creating a new zettel"""
-        payload = {"name": "New Shopping List"}
+        payload = {'name': 'New Shopping List'}
         response = self.client.post(
-            '/api/zettel/',
+            '/zettel/',
             data=json.dumps(payload),
-            content_type='application/json'
+            content_type='application/json',
         )
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
-        self.assertEqual(data['name'], "New Shopping List")
+        self.assertEqual(data['name'], 'New Shopping List')
         self.assertIn('slug', data)
 
         # Verify it was created in the database
         zettel = Zettel.objects.get(slug=data['slug'])
-        self.assertEqual(zettel.name, "New Shopping List")
+        self.assertEqual(zettel.name, 'New Shopping List')
 
     def test_get_zettel(self):
         """Test getting a specific zettel"""
-        response = self.client.get(f'/api/zettel/{self.zettel.slug}/')
+        response = self.client.get(f'/zettel/{self.zettel.slug}/')
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
-        self.assertEqual(data['name'], "Test Shopping List")
+        self.assertEqual(data['name'], 'Test Shopping List')
         self.assertEqual(data['slug'], self.zettel.slug)
         self.assertIn('items', data)
         self.assertEqual(len(data['items']), 3)
 
     def test_get_nonexistent_zettel(self):
         """Test getting a zettel that doesn't exist"""
-        response = self.client.get('/api/zettel/non-existent-slug/')
+        response = self.client.get('/zettel/non-existent-slug/')
         self.assertEqual(response.status_code, 404)
 
     def test_update_zettel(self):
         """Test updating a zettel"""
-        payload = {"name": "Updated Shopping List"}
+        payload = {'name': 'Updated Shopping List'}
         response = self.client.put(
-            f'/api/zettel/{self.zettel.slug}/',
+            f'/zettel/{self.zettel.slug}/',
             data=json.dumps(payload),
-            content_type='application/json'
+            content_type='application/json',
         )
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
-        self.assertEqual(data['name'], "Updated Shopping List")
+        self.assertEqual(data['name'], 'Updated Shopping List')
 
         # Verify it was updated in the database
         self.zettel.refresh_from_db()
-        self.assertEqual(self.zettel.name, "Updated Shopping List")
+        self.assertEqual(self.zettel.name, 'Updated Shopping List')
 
     def test_delete_zettel(self):
         """Test deleting a zettel"""
         zettel_slug = self.zettel2.slug
-        response = self.client.delete(f'/api/zettel/{zettel_slug}/')
+        response = self.client.delete(f'/zettel/{zettel_slug}/')
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
@@ -144,7 +143,7 @@ class TestEinkaufszettelAPI(TestCase):
 
     def test_get_zettel_markdown(self):
         """Test getting zettel as markdown"""
-        response = self.client.get(f'/api/zettel/{self.zettel.slug}/markdown/')
+        response = self.client.get(f'/zettel/{self.zettel.slug}/markdown/')
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
@@ -160,7 +159,9 @@ class TestEinkaufszettelAPI(TestCase):
 
     def test_get_zettel_markdown_with_completed(self):
         """Test getting zettel as markdown including completed items"""
-        response = self.client.get(f'/api/zettel/{self.zettel.slug}/markdown/?completed=true')
+        response = self.client.get(
+            f'/zettel/{self.zettel.slug}/markdown/?completed=true'
+        )
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
@@ -173,21 +174,23 @@ class TestEinkaufszettelAPI(TestCase):
     # Item Tests
     def test_list_items(self):
         """Test listing items in a zettel"""
-        response = self.client.get(f'/api/zettel/{self.zettel.slug}/items/')
+        response = self.client.get(f'/zettel/{self.zettel.slug}/items/')
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
         self.assertEqual(len(data), 3)
 
         names = [item['name'] for item in data]
-        self.assertIn("Apfel", names)
-        self.assertIn("Käse", names)
-        self.assertIn("Tomaten", names)
+        self.assertIn('Apfel', names)
+        self.assertIn('Käse', names)
+        self.assertIn('Tomaten', names)
 
     def test_list_items_with_completed_filter(self):
         """Test listing items with completed filter"""
         # Get only uncompleted items
-        response = self.client.get(f'/api/zettel/{self.zettel.slug}/items/?completed=false')
+        response = self.client.get(
+            f'/zettel/{self.zettel.slug}/items/?completed=false'
+        )
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
@@ -197,95 +200,97 @@ class TestEinkaufszettelAPI(TestCase):
             self.assertFalse(item['completed'])
 
         # Get only completed items
-        response = self.client.get(f'/api/zettel/{self.zettel.slug}/items/?completed=true')
+        response = self.client.get(
+            f'/zettel/{self.zettel.slug}/items/?completed=true'
+        )
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
         self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]['name'], "Käse")
+        self.assertEqual(data[0]['name'], 'Käse')
         self.assertTrue(data[0]['completed'])
 
     def test_create_item(self):
         """Test creating a new item"""
         payload = {
-            "name": "Bananen",
-            "qty": 6,
-            "unit": "Stück",
-            "completed": False
+            'name': 'Bananen',
+            'qty': 6,
+            'unit': 'Stück',
+            'completed': False,
         }
         response = self.client.post(
-            f'/api/zettel/{self.zettel.slug}/items/',
+            f'/zettel/{self.zettel.slug}/items/',
             data=json.dumps(payload),
-            content_type='application/json'
+            content_type='application/json',
         )
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
-        self.assertEqual(data['name'], "Bananen")
+        self.assertEqual(data['name'], 'Bananen')
         self.assertEqual(data['qty'], 6)
-        self.assertEqual(data['unit'], "Stück")
+        self.assertEqual(data['unit'], 'Stück')
         self.assertFalse(data['completed'])
 
         # Verify it was created in the database
         item = Item.objects.get(slug=data['slug'])
-        self.assertEqual(item.name, "Bananen")
+        self.assertEqual(item.name, 'Bananen')
         self.assertEqual(item.zettel, self.zettel)
 
     def test_create_item_with_defaults(self):
         """Test creating item with default values"""
-        payload = {"name": "Milk"}
+        payload = {'name': 'Milk'}
         response = self.client.post(
-            f'/api/zettel/{self.zettel.slug}/items/',
+            f'/zettel/{self.zettel.slug}/items/',
             data=json.dumps(payload),
-            content_type='application/json'
+            content_type='application/json',
         )
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
-        self.assertEqual(data['name'], "Milk")
+        self.assertEqual(data['name'], 'Milk')
         self.assertEqual(data['qty'], 1.0)
-        self.assertEqual(data['unit'], "Stück")
+        self.assertEqual(data['unit'], 'Stück')
         self.assertFalse(data['completed'])
 
     def test_get_item(self):
         """Test getting a specific item"""
-        response = self.client.get(f'/api/zettel/{self.zettel.slug}/{self.item1.slug}/')
-        self.assertEqual(response.status_code, 200)
-
-        data = response.json()
-        self.assertEqual(data['name'], "Apfel")
-        self.assertEqual(data['slug'], self.item1.slug)
-
-    def test_update_item(self):
-        """Test updating an item"""
-        payload = {
-            "name": "Green Apples",
-            "qty": 3,
-            "completed": True
-        }
-        response = self.client.put(
-            f'/api/zettel/{self.zettel.slug}/{self.item1.slug}/',
-            data=json.dumps(payload),
-            content_type='application/json'
+        response = self.client.get(
+            f'/zettel/{self.zettel.slug}/{self.item1.slug}/'
         )
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
-        self.assertEqual(data['name'], "Green Apples")
+        self.assertEqual(data['name'], 'Apfel')
+        self.assertEqual(data['slug'], self.item1.slug)
+
+    def test_update_item(self):
+        """Test updating an item"""
+        payload = {'name': 'Green Apples', 'qty': 3, 'completed': True}
+        response = self.client.put(
+            f'/zettel/{self.zettel.slug}/{self.item1.slug}/',
+            data=json.dumps(payload),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+
+        data = response.json()
+        self.assertEqual(data['name'], 'Green Apples')
         self.assertEqual(data['qty'], 3)
         self.assertTrue(data['completed'])
-        self.assertEqual(data['unit'], "Stück")  # Should remain unchanged
+        self.assertEqual(data['unit'], 'Stück')  # Should remain unchanged
 
         # Verify in database
         self.item1.refresh_from_db()
-        self.assertEqual(self.item1.name, "Green Apples")
+        self.assertEqual(self.item1.name, 'Green Apples')
         self.assertEqual(self.item1.qty, 3)
         self.assertTrue(self.item1.completed)
 
     def test_delete_item(self):
         """Test deleting an item"""
         item_slug = self.item1.slug
-        response = self.client.delete(f'/api/zettel/{self.zettel.slug}/{item_slug}/')
+        response = self.client.delete(
+            f'/zettel/{self.zettel.slug}/{item_slug}/'
+        )
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
@@ -300,7 +305,9 @@ class TestEinkaufszettelAPI(TestCase):
         self.assertFalse(self.item1.completed)
 
         # Toggle to completed
-        response = self.client.patch(f'/api/zettel/{self.zettel.slug}/{self.item1.slug}/toggle/')
+        response = self.client.patch(
+            f'/zettel/{self.zettel.slug}/{self.item1.slug}/toggle/'
+        )
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
@@ -311,7 +318,9 @@ class TestEinkaufszettelAPI(TestCase):
         self.assertTrue(self.item1.completed)
 
         # Toggle back to not completed
-        response = self.client.patch(f'/api/zettel/{self.zettel.slug}/{self.item1.slug}/toggle/')
+        response = self.client.patch(
+            f'/zettel/{self.zettel.slug}/{self.item1.slug}/toggle/'
+        )
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
@@ -321,14 +330,14 @@ class TestEinkaufszettelAPI(TestCase):
     def test_bulk_create_items(self):
         """Test bulk creating items"""
         payload = [
-            {"name": "Bread", "qty": 1, "unit": "loaf"},
-            {"name": "Milk", "qty": 2, "unit": "liter"},
-            {"name": "Eggs", "qty": 12, "unit": "pieces"}
+            {'name': 'Bread', 'qty': 1, 'unit': 'loaf'},
+            {'name': 'Milk', 'qty': 2, 'unit': 'liter'},
+            {'name': 'Eggs', 'qty': 12, 'unit': 'pieces'},
         ]
         response = self.client.post(
-            f'/api/zettel/{self.zettel.slug}/items/bulk/',
+            f'/zettel/{self.zettel.slug}/items/bulk/',
             data=json.dumps(payload),
-            content_type='application/json'
+            content_type='application/json',
         )
         self.assertEqual(response.status_code, 200)
 
@@ -337,9 +346,9 @@ class TestEinkaufszettelAPI(TestCase):
 
         # Verify all items were created
         names = [item['name'] for item in data]
-        self.assertIn("Bread", names)
-        self.assertIn("Milk", names)
-        self.assertIn("Eggs", names)
+        self.assertIn('Bread', names)
+        self.assertIn('Milk', names)
+        self.assertIn('Eggs', names)
 
         # Verify in database
         total_items = Item.objects.filter(zettel=self.zettel).count()
@@ -348,17 +357,23 @@ class TestEinkaufszettelAPI(TestCase):
     def test_complete_all_items(self):
         """Test marking all items as completed"""
         # Initially, we have 2 uncompleted items
-        uncompleted_count = Item.objects.filter(zettel=self.zettel, completed=False).count()
+        uncompleted_count = Item.objects.filter(
+            zettel=self.zettel, completed=False
+        ).count()
         self.assertEqual(uncompleted_count, 2)
 
-        response = self.client.patch(f'/api/zettel/{self.zettel.slug}/items/complete-all/')
+        response = self.client.patch(
+            f'/zettel/{self.zettel.slug}/items/complete-all/'
+        )
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
         self.assertEqual(data['updated_count'], 2)
 
         # Verify all items are now completed
-        uncompleted_count = Item.objects.filter(zettel=self.zettel, completed=False).count()
+        uncompleted_count = Item.objects.filter(
+            zettel=self.zettel, completed=False
+        ).count()
         self.assertEqual(uncompleted_count, 0)
 
     def test_uncomplete_all_items(self):
@@ -366,68 +381,80 @@ class TestEinkaufszettelAPI(TestCase):
         # First, complete all items
         Item.objects.filter(zettel=self.zettel).update(completed=True)
 
-        completed_count = Item.objects.filter(zettel=self.zettel, completed=True).count()
+        completed_count = Item.objects.filter(
+            zettel=self.zettel, completed=True
+        ).count()
         self.assertEqual(completed_count, 3)
 
-        response = self.client.patch(f'/api/zettel/{self.zettel.slug}/items/uncomplete-all/')
+        response = self.client.patch(
+            f'/zettel/{self.zettel.slug}/items/uncomplete-all/'
+        )
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
         self.assertEqual(data['updated_count'], 3)
 
         # Verify all items are now uncompleted
-        completed_count = Item.objects.filter(zettel=self.zettel, completed=True).count()
+        completed_count = Item.objects.filter(
+            zettel=self.zettel, completed=True
+        ).count()
         self.assertEqual(completed_count, 0)
 
     # Error Handling Tests
     def test_create_item_invalid_zettel(self):
         """Test creating item with invalid zettel ID"""
-        payload = {"name": "Test Item"}
+        payload = {'name': 'Test Item'}
         response = self.client.post(
-            '/api/zettel/non-existent-slug/items/',
+            '/zettel/non-existent-slug/items/',
             data=json.dumps(payload),
-            content_type='application/json'
+            content_type='application/json',
         )
         self.assertEqual(response.status_code, 404)
 
     def test_update_nonexistent_item(self):
         """Test updating an item that doesn't exist"""
-        payload = {"name": "Updated Item"}
+        payload = {'name': 'Updated Item'}
         response = self.client.put(
-            f'/api/zettel/{self.zettel.slug}/non-existent-slug/',
+            f'/zettel/{self.zettel.slug}/non-existent-slug/',
             data=json.dumps(payload),
-            content_type='application/json'
+            content_type='application/json',
         )
         self.assertEqual(response.status_code, 404)
 
     def test_delete_nonexistent_item(self):
         """Test deleting an item that doesn't exist"""
-        response = self.client.delete(f'/api/zettel/{self.zettel.slug}/non-existent-slug/')
+        response = self.client.delete(
+            f'/zettel/{self.zettel.slug}/non-existent-slug/'
+        )
         self.assertEqual(response.status_code, 404)
 
     def test_hierarchical_access_control_get_item(self):
         """Test that items can't be accessed through wrong zettel path"""
         # Try to access item1 (belongs to self.zettel) through self.zettel2 path
-        response = self.client.get(f'/api/zettel/{self.zettel2.slug}/{self.item1.slug}/')
+        response = self.client.get(
+            f'/zettel/{self.zettel2.slug}/{self.item1.slug}/'
+        )
         self.assertEqual(response.status_code, 404)
 
     def test_hierarchical_access_control_update_item(self):
         """Test that items can't be updated through wrong zettel path"""
-        payload = {"name": "Hacked Item"}
+        payload = {'name': 'Hacked Item'}
         response = self.client.put(
-            f'/api/zettel/{self.zettel2.slug}/{self.item1.slug}/',
+            f'/zettel/{self.zettel2.slug}/{self.item1.slug}/',
             data=json.dumps(payload),
-            content_type='application/json'
+            content_type='application/json',
         )
         self.assertEqual(response.status_code, 404)
 
         # Verify the item wasn't changed
         self.item1.refresh_from_db()
-        self.assertEqual(self.item1.name, "Apfel")
+        self.assertEqual(self.item1.name, 'Apfel')
 
     def test_hierarchical_access_control_delete_item(self):
         """Test that items can't be deleted through wrong zettel path"""
-        response = self.client.delete(f'/api/zettel/{self.zettel2.slug}/{self.item1.slug}/')
+        response = self.client.delete(
+            f'/zettel/{self.zettel2.slug}/{self.item1.slug}/'
+        )
         self.assertEqual(response.status_code, 404)
 
         # Verify the item still exists
@@ -436,7 +463,9 @@ class TestEinkaufszettelAPI(TestCase):
     def test_hierarchical_access_control_toggle_item(self):
         """Test that items can't be toggled through wrong zettel path"""
         original_completed = self.item1.completed
-        response = self.client.patch(f'/api/zettel/{self.zettel2.slug}/{self.item1.slug}/toggle/')
+        response = self.client.patch(
+            f'/zettel/{self.zettel2.slug}/{self.item1.slug}/toggle/'
+        )
         self.assertEqual(response.status_code, 404)
 
         # Verify the item's completed status wasn't changed
@@ -445,10 +474,10 @@ class TestEinkaufszettelAPI(TestCase):
 
     def test_empty_zettel_markdown(self):
         """Test markdown generation for empty zettel"""
-        empty_zettel = Zettel.objects.create(name="Empty List")
-        response = self.client.get(f'/api/zettel/{empty_zettel.slug}/markdown/')
+        empty_zettel = Zettel.objects.create(name='Empty List')
+        response = self.client.get(f'/zettel/{empty_zettel.slug}/markdown/')
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
         markdown = data['markdown']
-        self.assertEqual(markdown.strip(), "# Empty List")
+        self.assertEqual(markdown.strip(), '# Empty List')
