@@ -1,0 +1,1 @@
+- [ ] configure structlog for uvicorn logs

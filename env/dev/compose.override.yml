@@ -1,0 +1,23 @@
+networks:
+  ingress:
+    external: true
+
+services:
+  app:
+    # image: alpine/socat
+    # command: ['tcp-listen:8000,fork,reuseaddr', 'tcp-connect:host.docker.internal:8000']
+    # expose:
+    #   - "8000"
+    env_file: .env
+    environment:
+      - STATIC_ROOT=/srv/appdata/static
+      - MEDIA_ROOT=/srv/appdata/media
+      - DB_HOST=postgres
+    labels:
+      ingress.host: einkaufszettel.0-main.de
+      ingress.port: 8000
+    networks:
+      default:
+      ingress:
+    extra_hosts:
+    - "host.docker.internal:host-gateway"

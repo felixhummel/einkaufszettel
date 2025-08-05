@@ -29,6 +29,8 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    # https://whitenoise.readthedocs.io/en/stable/django.html#using-whitenoise-in-development
+    'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
     'django_extensions',
     'felix_django',
@@ -37,6 +39,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -62,6 +65,13 @@ TEMPLATES = [
         },
     },
 ]
+
+STORAGES = {
+    # https://whitenoise.readthedocs.io/en/stable/django.html
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
 
 DATABASES = {
     'default': {
@@ -95,10 +105,24 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = os.environ['STATIC_ROOT']
+
+
+MEDIA_ROOT = os.environ['MEDIA_ROOT']
+MEDIA_URL = '/media/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 NINJA_PAGINATION_PER_PAGE = 20
 
 AUTH_USER_MODEL = 'einkaufszettel.user'
+
+# this only comes into play with TLS
+# https://docs.djangoproject.com/en/3.2/ref/settings/#csrf-trusted-origins
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
+_cookie_domain = os.environ.get('COOKIE_DOMAIN', '')
+SESSION_COOKIE_DOMAIN = _cookie_domain
+# https://docs.djangoproject.com/en/3.2/ref/csrf/#csrf-limitations
+CSRF_COOKIE_DOMAIN = _cookie_domain
+LANGUAGE_COOKIE_DOMAIN = _cookie_domain
+CSRF_COOKIE_SECURE = True

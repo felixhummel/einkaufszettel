@@ -4,6 +4,13 @@ volumes:
 
 
 services:
+  app:
+    build: .
+    environment:
+      - DB_USERNAME
+      - DB_PASSWORD
+      - DB_DATABASE_NAME
+    restart: unless-stopped
   postgres:
     build: 2-containers/postgres/
     environment:

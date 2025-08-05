@@ -6,11 +6,13 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "django>=4.2.0",
+    "django-extensions>=4.1",
     "django-ninja>=1.4.3",
     "felix-django>=1.0.1",
     "psycopg[binary,pool]>=3.2.9",
     "structlog>=25.4.0",
     "uvicorn>=0.35.0",
+    "whitenoise[brotli]>=6.9.0",
 ]
 
 [build-system]
@@ -20,7 +22,6 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
-    "django-extensions>=4.1",
     "django-stubs>=5.2.2",
     "ipython>=9.4.0",
     "pytest>=8.4.1",

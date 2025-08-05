@@ -2,3 +2,5 @@
 set -euo pipefail
 
 ./env/dev/generate_env_file.sh > .env
+rm -f compose.override.yml
+ln -s env/dev/compose.override.yml
