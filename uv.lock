@@ -354,6 +354,7 @@ source = { editable = "." }
 dependencies = [
     { name = "django" },
     { name = "django-ninja" },
+    { name = "felix-django" },
     { name = "structlog" },
     { name = "uvicorn" },
 ]
@@ -376,6 +377,7 @@ dev = [
 requires-dist = [
     { name = "django", specifier = ">=4.2.0" },
     { name = "django-ninja", specifier = ">=1.4.3" },
+    { name = "felix-django", specifier = ">=1.0.1" },
     { name = "structlog", specifier = ">=25.4.0" },
     { name = "uvicorn", specifier = ">=0.35.0" },
 ]
@@ -401,6 +403,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/91/50/a9d80c47ff289c611ff12e63f7c5d13942c65d68125160cefd768c73e6e4/executing-2.2.0.tar.gz", hash = "sha256:5d108c028108fe2551d1a7b2e8b713341e2cb4fc0aa7dcf966fa4327a5226755", size = 978693, upload-time = "2025-01-22T15:41:29.403Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7b/8f/c4d9bafc34ad7ad5d8dc16dd1347ee0e507a52c3adb6bfa8887e1c6a26ba/executing-2.2.0-py2.py3-none-any.whl", hash = "sha256:11387150cad388d62750327a53d3339fad4888b39a6fe233c3afbb54ecffd3aa", size = 26702, upload-time = "2025-01-22T15:41:25.929Z" },
+]
+
+[[package]]
+name = "felix-django"
+version = "1.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+    { name = "structlog" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e2/82/e74c2f8c245e039245d97f20ec3510ed5d2ed9a76ad84d7a760cec336cd9/felix_django-1.0.1.tar.gz", hash = "sha256:58251cac6fe23e1e5e04056fef1902f9170b2acd73d9d5a784a06b9b5fa2a63f", size = 1700, upload-time = "2025-08-05T10:21:07.943Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/be/5d/7a285be3486105330fa29c827e914888f68d516652f242c98bc5dd7c09c9/felix_django-1.0.1-py3-none-any.whl", hash = "sha256:ac8a06e6936847bd0f887fd029421dd63d02e3c2cb93ebb74ea73865c0335a32", size = 3312, upload-time = "2025-08-05T10:21:06.856Z" },
 ]
 
 [[package]]
