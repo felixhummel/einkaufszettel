@@ -26,6 +26,13 @@ Zettel(name='Netto')
 
 # Development
 ```bash
+cat <<EOF > .env
+SECRET_KEY=Ieku6oi4thaD
+APP_ADMIN_PASSWORD=$(pwgen 12 1)
+DEBUG=true
+UV_PREVIEW=1
+EOF
+
 mise install
 uv sync
 make
