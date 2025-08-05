@@ -11,7 +11,7 @@ indent_size = 2
 trim_trailing_whitespace = true
 max_line_length = 79
 
-[*.{py,md,html,xml,toml}]
+[*.{py,html,xml,toml}]
 indent_size = 4
 
 [{Makefile,Caddyfile}]
