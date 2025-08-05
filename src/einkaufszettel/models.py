@@ -4,10 +4,9 @@ from django.utils.text import slugify
 from .domain import DEFAULT_UNIT
 
 
-
-
 class Zettel(models.Model):
     """Shopping list model"""
+
     name = models.CharField(max_length=200)
     slug = models.CharField(max_length=200, unique=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -26,6 +25,7 @@ class Zettel(models.Model):
 
 class User(AbstractUser):
     """Extended User model"""
+
     # Add custom fields here if needed
     # Example:
     # phone = models.CharField(max_length=20, blank=True)
@@ -35,10 +35,9 @@ class User(AbstractUser):
 
 class Item(models.Model):
     """Shopping list item model"""
+
     zettel = models.ForeignKey(
-        Zettel,
-        related_name='items',
-        on_delete=models.CASCADE
+        Zettel, related_name='items', on_delete=models.CASCADE
     )
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, editable=False)
@@ -52,8 +51,7 @@ class Item(models.Model):
         ordering = ['slug']
         constraints = [
             models.UniqueConstraint(
-                fields=['zettel', 'slug'],
-                name='unique_item_per_zettel'
+                fields=['zettel', 'slug'], name='unique_item_per_zettel'
             )
         ]
 
@@ -62,4 +60,4 @@ class Item(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.name} ({self.qty} {self.unit})"
+        return f'{self.name} ({self.qty} {self.unit})'

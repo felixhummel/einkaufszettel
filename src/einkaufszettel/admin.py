@@ -1,11 +1,11 @@
 from django.contrib import admin
-from django.contrib.auth.models import User as DjangoUser
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from .models import Zettel, Item, User
 
 
 class ItemInline(admin.TabularInline):
     """Inline admin for items within zettel admin"""
+
     model = Item
     extra = 1
     fields = ('name', 'qty', 'unit', 'completed')
@@ -15,7 +15,14 @@ class ItemInline(admin.TabularInline):
 @admin.register(Zettel)
 class ZettelAdmin(admin.ModelAdmin):
     """Admin configuration for Zettel model"""
-    list_display = ('name', 'item_count', 'completed_items', 'created_at', 'updated_at')
+
+    list_display = (
+        'name',
+        'item_count',
+        'completed_items',
+        'created_at',
+        'updated_at',
+    )
     list_filter = ('created_at', 'updated_at')
     search_fields = ('name',)
     readonly_fields = ('created_at', 'updated_at')
@@ -25,19 +32,22 @@ class ZettelAdmin(admin.ModelAdmin):
     def item_count(self, obj):
         """Return total number of items in this zettel"""
         return obj.items.count()
+
     item_count.short_description = 'Total Items'
 
     def completed_items(self, obj):
         """Return number of completed items"""
         completed = obj.items.filter(completed=True).count()
         total = obj.items.count()
-        return f"{completed}/{total}"
+        return f'{completed}/{total}'
+
     completed_items.short_description = 'Completed'
 
 
 @admin.register(Item)
 class ItemAdmin(admin.ModelAdmin):
     """Admin configuration for Item model"""
+
     list_display = ('name', 'zettel', 'qty', 'unit', 'completed', 'created_at')
     list_filter = ('completed', 'unit', 'zettel', 'created_at')
     search_fields = ('name', 'zettel__name')
@@ -46,13 +56,11 @@ class ItemAdmin(admin.ModelAdmin):
     ordering = ('zettel', 'created_at')
 
     fieldsets = (
-        (None, {
-            'fields': ('zettel', 'name', 'qty', 'unit', 'completed')
-        }),
-        ('Timestamps', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
+        (None, {'fields': ('zettel', 'name', 'qty', 'unit', 'completed')}),
+        (
+            'Timestamps',
+            {'fields': ('created_at', 'updated_at'), 'classes': ('collapse',)},
+        ),
     )
 
     def get_queryset(self, request):
@@ -65,10 +73,9 @@ admin.site.site_header = 'Einkaufszettel Administration'
 admin.site.site_title = 'Einkaufszettel Admin'
 admin.site.index_title = 'Welcome to Einkaufszettel Administration'
 
+
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
     """Admin configuration for extended User model"""
-    pass
 
-# Unregister the default Django User model
-admin.site.unregister(DjangoUser)
+    pass

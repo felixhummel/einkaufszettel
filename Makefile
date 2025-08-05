@@ -3,7 +3,8 @@ MAKEFLAGS += --always-make
 qa: ruff ty test
 
 ruff:
-	ruff check .
+	ruff format .
+	ruff check --fix .
 
 ty:
 	ty check --ignore unresolved-attribute .
@@ -11,7 +12,7 @@ ty:
 test:
 	pytest tests/
 
-devserver:
+runserver:
 	./manage.py runserver 127.0.0.1:8001
 
 uvicorn:

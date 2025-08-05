@@ -1,16 +1,20 @@
 import os
 import warnings
 from pathlib import Path
+import structlog
+
+log = structlog.get_logger()
 
 # Build paths inside the project
-BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+log.info('settings', BASE_DIR=BASE_DIR)
 
 # Suppress Pydantic deprecation warnings from django-ninja
 # TODO: Remove this when django-ninja updates to use ConfigDict instead of class-based config
 warnings.filterwarnings(
-    "ignore",
-    message="Support for class-based `config` is deprecated.*",
-    category=DeprecationWarning
+    'ignore',
+    message='Support for class-based `config` is deprecated.*',
+    category=DeprecationWarning,
 )
 
 SECRET_KEY = os.environ['SECRET_KEY']
@@ -27,6 +31,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
+    'felix_django',
     'einkaufszettel',
 ]
 
@@ -92,5 +97,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 NINJA_PAGINATION_PER_PAGE = 20
 
-# Use our custom User model
-AUTH_USER_MODEL = 'einkaufszettel.User'
+AUTH_USER_MODEL = 'einkaufszettel.user'
