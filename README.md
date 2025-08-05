@@ -26,12 +26,8 @@ Zettel(name='Netto')
 
 # Development
 ```bash
-cat <<EOF > .env
-SECRET_KEY=Ieku6oi4thaD
-APP_ADMIN_PASSWORD=$(pwgen 12 1)
-DEBUG=true
-UV_PREVIEW=1
-EOF
+./env/dev/activate
+docker-compose up -d --build --remove-orphans
 
 mise install
 uv sync

@@ -1,0 +1,23 @@
+volumes:
+  postgres_data:
+  postgres_log:
+
+
+services:
+  postgres:
+    build: 2-containers/postgres/
+    environment:
+      - POSTGRES_PASSWORD
+      - DB_USERNAME
+      - DB_PASSWORD
+      - DB_DATABASE_NAME
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - postgres_log:/var/log/postgres_statements
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 1s
+    ports:
+      - 127.0.0.1:5432:5432
+    restart: unless-stopped

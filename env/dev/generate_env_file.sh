@@ -1,0 +1,16 @@
+#!/bin/bash
+set -euo pipefail
+
+cat <<EOF
+SECRET_KEY=${SECRET_KEY:-$(pwgen 12 1)}
+APP_ADMIN_PASSWORD=${APP_ADMIN_PASSWORD:-$(pwgen 12 1)}
+DEBUG=true
+UV_PREVIEW=1
+POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-$(pwgen 12 1)}
+DB_USERNAME=django
+DB_PASSWORD=${DB_PASSWORD:-$(pwgen 12 1)}
+DB_DATABASE_NAME=einkaufszettel
+DB_HOST=localhost
+DB_PORT=5432
+EOF
+

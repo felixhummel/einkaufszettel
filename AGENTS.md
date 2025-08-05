@@ -1,8 +1,11 @@
 Einkaufszettel is a Django-Ninja shopping list API.
 
 You can find
+
 - source code in `src/`
 - tests in `tests/`
+- Dockerfiles in `2-containers/`
+- Docker compose: `compose.yml`
 
 Rules:
 
