@@ -1,5 +1,7 @@
 from django.contrib import admin
-from .models import Zettel, Item
+from django.contrib.auth.models import User as DjangoUser
+from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from .models import Zettel, Item, User
 
 
 class ItemInline(admin.TabularInline):
@@ -62,3 +64,11 @@ class ItemAdmin(admin.ModelAdmin):
 admin.site.site_header = 'Einkaufszettel Administration'
 admin.site.site_title = 'Einkaufszettel Admin'
 admin.site.index_title = 'Welcome to Einkaufszettel Administration'
+
+@admin.register(User)
+class UserAdmin(DjangoUserAdmin):
+    """Admin configuration for extended User model"""
+    pass
+
+# Unregister the default Django User model
+admin.site.unregister(DjangoUser)

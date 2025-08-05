@@ -91,3 +91,6 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 NINJA_PAGINATION_PER_PAGE = 20
+
+# Use our custom User model
+AUTH_USER_MODEL = 'einkaufszettel.User'
