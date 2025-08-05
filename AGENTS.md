@@ -1,1 +1,8 @@
-Run `make` to run verify your changes. It formats and runs tests.
+# Einkaufszettel
+Django-Ninja shopping list API with src-layout.
+
+Source code: src/, Tests: tests/
+
+Verify changes: `make`
+
+API docs: /docs/
