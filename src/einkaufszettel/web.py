@@ -1,5 +1,6 @@
 from django.urls import reverse
 from ninja import NinjaAPI, Schema
+from ninja.security import HttpBearer
 from ninja.pagination import paginate
 from django.shortcuts import get_object_or_404, render
 
@@ -8,8 +9,17 @@ from .models import Zettel, Item
 from .domain import DEFAULT_UNIT
 
 
+class GlobalAuth(HttpBearer):
+    def authenticate(self, request, token):
+        if token == 'geheim':
+            return token
+
+
 api = NinjaAPI(
-    title='Einkaufszettel API', version='1.0.0', urls_namespace='ek'
+    auth=GlobalAuth(),
+    title='Einkaufszettel API',
+    version='1.0.0',
+    urls_namespace='ek',
 )
 
 

@@ -9,8 +9,9 @@ from einkaufszettel.web import api
 # Enable DB for all tests in this module
 pytestmark = pytest.mark.django_db
 
-# Create test client
-client = TestClient(api)
+
+BEARER_TOKEN = 'geheim'
+client = TestClient(api, headers={'Authorization': f'Bearer {BEARER_TOKEN}'})
 
 
 @pytest.fixture
