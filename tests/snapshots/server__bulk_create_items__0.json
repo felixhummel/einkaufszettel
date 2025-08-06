@@ -1,0 +1,23 @@
+[
+  {
+    "slug": "bread",
+    "name": "Bread",
+    "qty": 1.0,
+    "unit": "loaf",
+    "completed": false
+  },
+  {
+    "slug": "milk",
+    "name": "Milk",
+    "qty": 2.0,
+    "unit": "liter",
+    "completed": false
+  },
+  {
+    "slug": "eggs",
+    "name": "Eggs",
+    "qty": 12.0,
+    "unit": "pieces",
+    "completed": false
+  }
+]

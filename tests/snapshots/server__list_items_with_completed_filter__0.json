@@ -1,0 +1,16 @@
+[
+  {
+    "slug": "apfel",
+    "name": "Apfel",
+    "qty": 1.0,
+    "unit": "St\u00fcck",
+    "completed": false
+  },
+  {
+    "slug": "tomaten",
+    "name": "Tomaten",
+    "qty": 1.5,
+    "unit": "kg",
+    "completed": false
+  }
+]
