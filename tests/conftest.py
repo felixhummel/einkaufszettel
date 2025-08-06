@@ -2,6 +2,8 @@ from typing import Callable
 from ninja.testing.client import NinjaResponse
 import pytest
 
+from einkaufszettel.models import Item, Zettel
+
 _DATE_KEYS = ['created_at', 'updated_at']
 
 
@@ -27,3 +29,41 @@ def assert_response_snapshot(snapshot) -> Callable[[NinjaResponse], None]:
         assert snapshot('json') == clean_response_json
 
     return inner
+
+
+@pytest.fixture
+def zettel_netto():
+    return Zettel.objects.create(name='Netto')
+
+
+@pytest.fixture
+def zettel_edeka():
+    return Zettel.objects.create(name='Edeka')
+
+
+@pytest.fixture
+def netto_items(zettel_netto):
+    items = [
+        Item.objects.create(
+            zettel=zettel_netto,
+            name='Apfel',
+            qty=1.0,
+            unit='Stück',
+            completed=False,
+        ),
+        Item.objects.create(
+            zettel=zettel_netto,
+            name='Käse',
+            qty=1.0,
+            unit='Stück',
+            completed=True,
+        ),
+        Item.objects.create(
+            zettel=zettel_netto,
+            name='Tomaten',
+            qty=1.5,
+            unit='kg',
+            completed=False,
+        ),
+    ]
+    return items
