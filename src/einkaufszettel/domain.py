@@ -59,3 +59,8 @@ class Zettel(list[Item]):
         else:
             item = Item(name=x)
         super().append(item)
+
+
+class ZettelSammlung(list[Zettel]):
+    def sorted_by_name(self) -> list[Zettel]:
+        return sorted(self, key=lambda z: z.name)

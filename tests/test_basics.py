@@ -1,10 +1,11 @@
 import pytest
 
 from einkaufszettel import Zettel, Item
+from einkaufszettel.domain import ZettelSammlung
 
 
 @pytest.fixture
-def zettel():
+def netto_zettel():
     result = Zettel('Netto')
     result.append('Apfel')
     result.append(
@@ -18,10 +19,31 @@ def zettel():
     return result
 
 
-def test(zettel):
+@pytest.fixture
+def edeka_zettel():
+    result = Zettel('Edeka')
+    result.append('Jever Fun')
+    return result
+
+
+@pytest.fixture
+def sammlung(netto_zettel, edeka_zettel):
+    return ZettelSammlung([netto_zettel, edeka_zettel])
+
+
+def test_sammlung(sammlung):
+    assert len(sammlung) == 2
+    assert [x.name for x in sammlung.sorted_by_name()] == [
+        'Edeka',
+        'Netto',
+    ]
+
+
+def test(netto_zettel):
     """
     When the user comes back, a typical session might look like this.
     """
+    zettel = netto_zettel
     # Einkaufszettel has a name
     assert zettel.name == 'Netto'
     # Einkaufszettel behaves like a list
