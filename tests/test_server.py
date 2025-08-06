@@ -13,13 +13,11 @@ client = TestClient(api, headers={'Authorization': f'Bearer {BEARER_TOKEN}'})
 
 
 def test_list_zettel(assert_response_snapshot, zettel_netto, zettel_edeka):
-    """Test listing all zettel"""
     response = client.get('/zettel/')
     assert_response_snapshot(response)
 
 
 def test_create_zettel(assert_response_snapshot):
-    """Test creating a new zettel"""
     payload = {'name': 'New Shopping List'}
     response = client.post(
         '/zettel/',
@@ -34,18 +32,15 @@ def test_create_zettel(assert_response_snapshot):
 
 
 def test_get_zettel(assert_response_snapshot, zettel_netto, netto_items):
-    """Test getting a specific zettel"""
     assert_response_snapshot(client.get(f'/zettel/{zettel_netto.slug}/'))
 
 
 def test_get_nonexistent_zettel(assert_response_snapshot):
-    """Test getting a zettel that doesn't exist"""
     response = client.get('/zettel/non-existent-slug/')
     assert_response_snapshot(response, expected_status=404)
 
 
 def test_update_zettel(assert_response_snapshot, zettel_netto):
-    """Test updating a zettel"""
     payload = {'name': 'Updated Shopping List'}
     response = client.put(
         f'/zettel/{zettel_netto.slug}/',
@@ -59,7 +54,6 @@ def test_update_zettel(assert_response_snapshot, zettel_netto):
 
 
 def test_delete_zettel(assert_response_snapshot, zettel_edeka):
-    """Test deleting a zettel"""
     zettel_slug = zettel_edeka.slug
     response = client.delete(f'/zettel/{zettel_slug}/')
     assert_response_snapshot(response)
@@ -69,7 +63,6 @@ def test_delete_zettel(assert_response_snapshot, zettel_edeka):
 
 
 def test_get_zettel_markdown(snapshot, zettel_netto, netto_items):
-    """Test getting zettel as markdown"""
     response = client.get(f'/zettel/{zettel_netto.slug}/markdown/')
     assert response.status_code == 200
 
@@ -80,7 +73,6 @@ def test_get_zettel_markdown(snapshot, zettel_netto, netto_items):
 def test_get_zettel_markdown_with_completed(
     assert_response_snapshot, zettel_netto, netto_items
 ):
-    """Test getting zettel as markdown including completed items"""
     response = client.get(
         f'/zettel/{zettel_netto.slug}/markdown/?completed=true'
     )
@@ -89,7 +81,6 @@ def test_get_zettel_markdown_with_completed(
 
 # Item Tests
 def test_list_items(assert_response_snapshot, zettel_netto, netto_items):
-    """Test listing items in a zettel"""
     response = client.get(f'/zettel/{zettel_netto.slug}/items/')
     assert_response_snapshot(response)
 
@@ -97,7 +88,6 @@ def test_list_items(assert_response_snapshot, zettel_netto, netto_items):
 def test_list_items_with_completed_filter(
     assert_response_snapshot, zettel_netto, netto_items
 ):
-    """Test listing items with completed filter"""
     # Get only uncompleted items
     response = client.get(
         f'/zettel/{zettel_netto.slug}/items/?completed=false'
@@ -110,7 +100,6 @@ def test_list_items_with_completed_filter(
 
 
 def test_create_item(assert_response_snapshot, zettel_netto):
-    """Test creating a new item"""
     payload = {
         'name': 'Bananen',
         'qty': 6,
@@ -131,7 +120,6 @@ def test_create_item(assert_response_snapshot, zettel_netto):
 
 
 def test_create_item_with_defaults(assert_response_snapshot, zettel_netto):
-    """Test creating item with default values"""
     payload = {'name': 'Milk'}
     response = client.post(
         f'/zettel/{zettel_netto.slug}/items/',
@@ -141,14 +129,12 @@ def test_create_item_with_defaults(assert_response_snapshot, zettel_netto):
 
 
 def test_get_item(assert_response_snapshot, zettel_netto, netto_items):
-    """Test getting a specific item"""
     item1 = netto_items[0]
     response = client.get(f'/zettel/{zettel_netto.slug}/{item1.slug}/')
     assert_response_snapshot(response)
 
 
 def test_update_item(assert_response_snapshot, zettel_netto, netto_items):
-    """Test updating an item"""
     item1 = netto_items[0]
     payload = {'name': 'Green Apples', 'qty': 3, 'completed': True}
     response = client.put(
@@ -165,7 +151,6 @@ def test_update_item(assert_response_snapshot, zettel_netto, netto_items):
 
 
 def test_delete_item(assert_response_snapshot, zettel_netto, netto_items):
-    """Test deleting an item"""
     item1 = netto_items[0]
     item_slug = item1.slug
     response = client.delete(f'/zettel/{zettel_netto.slug}/{item_slug}/')
@@ -178,7 +163,6 @@ def test_delete_item(assert_response_snapshot, zettel_netto, netto_items):
 def test_toggle_item_completed(
     assert_response_snapshot, zettel_netto, netto_items
 ):
-    """Test toggling item completion status"""
     item1 = netto_items[0]
     # Initially, item1 is not completed
     assert not item1.completed
@@ -206,7 +190,6 @@ def test_toggle_item_completed(
 
 # Bulk Operations Tests
 def test_bulk_create_items(assert_response_snapshot, zettel_netto):
-    """Test bulk creating items"""
     payload = [
         {'name': 'Bread', 'qty': 1, 'unit': 'loaf'},
         {'name': 'Milk', 'qty': 2, 'unit': 'liter'},
@@ -226,7 +209,6 @@ def test_bulk_create_items(assert_response_snapshot, zettel_netto):
 def test_complete_all_items(
     assert_response_snapshot, zettel_netto, netto_items
 ):
-    """Test marking all items as completed"""
     # Initially, we have 2 uncompleted items
     uncompleted_count = Item.objects.filter(
         zettel=zettel_netto, completed=False
@@ -246,7 +228,6 @@ def test_complete_all_items(
 def test_uncomplete_all_items(
     assert_response_snapshot, zettel_netto, netto_items
 ):
-    """Test marking all items as not completed"""
     # First, complete all items
     Item.objects.filter(zettel=zettel_netto).update(completed=True)
 
@@ -269,7 +250,6 @@ def test_uncomplete_all_items(
 
 # Error Handling Tests
 def test_create_item_invalid_zettel(assert_response_snapshot):
-    """Test creating item with invalid zettel ID"""
     payload = {'name': 'Test Item'}
     response = client.post(
         '/zettel/non-existent-slug/items/',
@@ -279,7 +259,6 @@ def test_create_item_invalid_zettel(assert_response_snapshot):
 
 
 def test_update_nonexistent_item(assert_response_snapshot, zettel_netto):
-    """Test updating an item that doesn't exist"""
     payload = {'name': 'Updated Item'}
     response = client.put(
         f'/zettel/{zettel_netto.slug}/non-existent-slug/',
@@ -289,7 +268,6 @@ def test_update_nonexistent_item(assert_response_snapshot, zettel_netto):
 
 
 def test_delete_nonexistent_item(assert_response_snapshot, zettel_netto):
-    """Test deleting an item that doesn't exist"""
     response = client.delete(f'/zettel/{zettel_netto.slug}/non-existent-slug/')
     assert_response_snapshot(response, expected_status=404)
 
@@ -297,7 +275,6 @@ def test_delete_nonexistent_item(assert_response_snapshot, zettel_netto):
 def test_hierarchical_access_control_get_item(
     assert_response_snapshot, zettel_netto, zettel_edeka, netto_items
 ):
-    """Test that items can't be accessed through wrong zettel path"""
     item1 = netto_items[0]
     # Try to access item1 (belongs to zettel_netto) through zettel_edeka path
     response = client.get(f'/zettel/{zettel_edeka.slug}/{item1.slug}/')
@@ -307,7 +284,6 @@ def test_hierarchical_access_control_get_item(
 def test_hierarchical_access_control_update_item(
     assert_response_snapshot, zettel_netto, zettel_edeka, netto_items
 ):
-    """Test that items can't be updated through wrong zettel path"""
     item1 = netto_items[0]
     payload = {'name': 'Hacked Item'}
     response = client.put(
@@ -324,7 +300,6 @@ def test_hierarchical_access_control_update_item(
 def test_hierarchical_access_control_delete_item(
     assert_response_snapshot, zettel_netto, zettel_edeka, netto_items
 ):
-    """Test that items can't be deleted through wrong zettel path"""
     item1 = netto_items[0]
     response = client.delete(f'/zettel/{zettel_edeka.slug}/{item1.slug}/')
     assert_response_snapshot(response, expected_status=404)
@@ -336,7 +311,6 @@ def test_hierarchical_access_control_delete_item(
 def test_hierarchical_access_control_toggle_item(
     assert_response_snapshot, zettel_netto, zettel_edeka, netto_items
 ):
-    """Test that items can't be toggled through wrong zettel path"""
     item1 = netto_items[0]
     original_completed = item1.completed
     response = client.patch(
@@ -350,7 +324,6 @@ def test_hierarchical_access_control_toggle_item(
 
 
 def test_empty_zettel_markdown(assert_response_snapshot):
-    """Test markdown generation for empty zettel"""
     empty_zettel = Zettel.objects.create(name='Empty List')
     response = client.get(f'/zettel/{empty_zettel.slug}/markdown/')
     assert_response_snapshot(response)
