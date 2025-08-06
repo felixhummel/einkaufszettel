@@ -9,6 +9,7 @@ dependencies = [
     "django-extensions>=4.1",
     "django-ninja>=1.4.3",
     "felix-django>=1.0.1",
+    "httpx>=0.28.1",
     "psycopg[binary,pool]>=3.2.9",
     "structlog>=25.4.0",
     "uvicorn>=0.35.0",
