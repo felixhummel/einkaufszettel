@@ -1,9 +1,13 @@
+from typing import Callable
+from ninja.testing.client import NinjaResponse
 import pytest
-import json
 from ninja.testing import TestClient
 
 from einkaufszettel.models import Zettel, Item
 from einkaufszettel.web import api
+
+# Enable DB for all tests in this module
+pytestmark = pytest.mark.django_db
 
 # Create test client
 client = TestClient(api)
@@ -11,19 +15,16 @@ client = TestClient(api)
 
 @pytest.fixture
 def test_zettel():
-    """Create a test zettel"""
-    return Zettel.objects.create(name='Test Shopping List')
+    return Zettel.objects.create(name='Netto')
 
 
 @pytest.fixture
 def another_zettel():
-    """Create another test zettel"""
-    return Zettel.objects.create(name='Another List')
+    return Zettel.objects.create(name='Edeka')
 
 
 @pytest.fixture
 def test_items(test_zettel):
-    """Create test items for the test zettel"""
     items = [
         Item.objects.create(
             zettel=test_zettel,
@@ -45,25 +46,42 @@ def test_items(test_zettel):
             qty=1.5,
             unit='kg',
             completed=False,
-        )
+        ),
     ]
     return items
 
 
-# Zettel Tests
-def test_list_zettel(test_zettel, another_zettel):
+_DATE_KEYS = ['created_at', 'updated_at']
+
+
+def remove_keys(data, del_keys):
+    if isinstance(data, dict):
+        return {
+            key: remove_keys(value, del_keys)
+            for key, value in data.items()
+            if key not in del_keys
+        }
+    elif isinstance(data, list):
+        return [remove_keys(item, del_keys) for item in data]
+    else:
+        return data
+
+
+@pytest.fixture
+def assert_response_snapshot(snapshot) -> Callable[[NinjaResponse], None]:
+    def inner(response, expected_status: int = 200):
+        assert response.status_code == expected_status
+        response_json = response.json()
+        clean_response_json = remove_keys(response_json, _DATE_KEYS)
+        assert snapshot('json') == clean_response_json
+
+    return inner
+
+
+def test_list_zettel(assert_response_snapshot, test_zettel, another_zettel):
     """Test listing all zettel"""
     response = client.get('/zettel/')
-    assert response.status_code == 200
-
-    data = response.json()
-    assert 'items' in data
-    assert len(data['items']) == 2
-
-    # Check that zettel names are present
-    names = [item['name'] for item in data['items']]
-    assert 'Test Shopping List' in names
-    assert 'Another List' in names
+    assert_response_snapshot(response)
 
 
 def test_create_zettel():
@@ -84,16 +102,9 @@ def test_create_zettel():
     assert zettel.name == 'New Shopping List'
 
 
-def test_get_zettel(test_zettel, test_items):
+def test_get_zettel(assert_response_snapshot, test_zettel, test_items):
     """Test getting a specific zettel"""
-    response = client.get(f'/zettel/{test_zettel.slug}/')
-    assert response.status_code == 200
-
-    data = response.json()
-    assert data['name'] == 'Test Shopping List'
-    assert data['slug'] == test_zettel.slug
-    assert 'items' in data
-    assert len(data['items']) == 3
+    assert_response_snapshot(client.get(f'/zettel/{test_zettel.slug}/'))
 
 
 def test_get_nonexistent_zettel():
@@ -132,21 +143,13 @@ def test_delete_zettel(another_zettel):
     assert not Zettel.objects.filter(slug=zettel_slug).exists()
 
 
-def test_get_zettel_markdown(test_zettel, test_items):
+def test_get_zettel_markdown(snapshot, test_zettel, test_items):
     """Test getting zettel as markdown"""
     response = client.get(f'/zettel/{test_zettel.slug}/markdown/')
     assert response.status_code == 200
 
     data = response.json()
-    assert 'markdown' in data
-    markdown = data['markdown']
-
-    # Check markdown content
-    assert '# Test Shopping List' in markdown
-    assert '- [ ] Apfel' in markdown
-    assert '- [ ] 1.5 kg Tomaten' in markdown
-    # Completed items should not be shown by default
-    assert '- [x] Käse' not in markdown
+    assert snapshot() == data['markdown']
 
 
 def test_get_zettel_markdown_with_completed(test_zettel, test_items):
@@ -182,9 +185,7 @@ def test_list_items(test_zettel, test_items):
 def test_list_items_with_completed_filter(test_zettel, test_items):
     """Test listing items with completed filter"""
     # Get only uncompleted items
-    response = client.get(
-        f'/zettel/{test_zettel.slug}/items/?completed=false'
-    )
+    response = client.get(f'/zettel/{test_zettel.slug}/items/?completed=false')
     assert response.status_code == 200
 
     data = response.json()
@@ -194,9 +195,7 @@ def test_list_items_with_completed_filter(test_zettel, test_items):
         assert not item['completed']
 
     # Get only completed items
-    response = client.get(
-        f'/zettel/{test_zettel.slug}/items/?completed=true'
-    )
+    response = client.get(f'/zettel/{test_zettel.slug}/items/?completed=true')
     assert response.status_code == 200
 
     data = response.json()
@@ -250,9 +249,7 @@ def test_create_item_with_defaults(test_zettel):
 def test_get_item(test_zettel, test_items):
     """Test getting a specific item"""
     item1 = test_items[0]
-    response = client.get(
-        f'/zettel/{test_zettel.slug}/{item1.slug}/'
-    )
+    response = client.get(f'/zettel/{test_zettel.slug}/{item1.slug}/')
     assert response.status_code == 200
 
     data = response.json()
@@ -287,9 +284,7 @@ def test_delete_item(test_zettel, test_items):
     """Test deleting an item"""
     item1 = test_items[0]
     item_slug = item1.slug
-    response = client.delete(
-        f'/zettel/{test_zettel.slug}/{item_slug}/'
-    )
+    response = client.delete(f'/zettel/{test_zettel.slug}/{item_slug}/')
     assert response.status_code == 200
 
     data = response.json()
@@ -306,9 +301,7 @@ def test_toggle_item_completed(test_zettel, test_items):
     assert not item1.completed
 
     # Toggle to completed
-    response = client.patch(
-        f'/zettel/{test_zettel.slug}/{item1.slug}/toggle/'
-    )
+    response = client.patch(f'/zettel/{test_zettel.slug}/{item1.slug}/toggle/')
     assert response.status_code == 200
 
     data = response.json()
@@ -319,9 +312,7 @@ def test_toggle_item_completed(test_zettel, test_items):
     assert item1.completed
 
     # Toggle back to not completed
-    response = client.patch(
-        f'/zettel/{test_zettel.slug}/{item1.slug}/toggle/'
-    )
+    response = client.patch(f'/zettel/{test_zettel.slug}/{item1.slug}/toggle/')
     assert response.status_code == 200
 
     data = response.json()
@@ -364,9 +355,7 @@ def test_complete_all_items(test_zettel, test_items):
     ).count()
     assert uncompleted_count == 2
 
-    response = client.patch(
-        f'/zettel/{test_zettel.slug}/items/complete-all/'
-    )
+    response = client.patch(f'/zettel/{test_zettel.slug}/items/complete-all/')
     assert response.status_code == 200
 
     data = response.json()
@@ -427,23 +416,23 @@ def test_update_nonexistent_item(test_zettel):
 
 def test_delete_nonexistent_item(test_zettel):
     """Test deleting an item that doesn't exist"""
-    response = client.delete(
-        f'/zettel/{test_zettel.slug}/non-existent-slug/'
-    )
+    response = client.delete(f'/zettel/{test_zettel.slug}/non-existent-slug/')
     assert response.status_code == 404
 
 
-def test_hierarchical_access_control_get_item(test_zettel, another_zettel, test_items):
+def test_hierarchical_access_control_get_item(
+    test_zettel, another_zettel, test_items
+):
     """Test that items can't be accessed through wrong zettel path"""
     item1 = test_items[0]
     # Try to access item1 (belongs to test_zettel) through another_zettel path
-    response = client.get(
-        f'/zettel/{another_zettel.slug}/{item1.slug}/'
-    )
+    response = client.get(f'/zettel/{another_zettel.slug}/{item1.slug}/')
     assert response.status_code == 404
 
 
-def test_hierarchical_access_control_update_item(test_zettel, another_zettel, test_items):
+def test_hierarchical_access_control_update_item(
+    test_zettel, another_zettel, test_items
+):
     """Test that items can't be updated through wrong zettel path"""
     item1 = test_items[0]
     payload = {'name': 'Hacked Item'}
@@ -458,19 +447,21 @@ def test_hierarchical_access_control_update_item(test_zettel, another_zettel, te
     assert item1.name == 'Apfel'
 
 
-def test_hierarchical_access_control_delete_item(test_zettel, another_zettel, test_items):
+def test_hierarchical_access_control_delete_item(
+    test_zettel, another_zettel, test_items
+):
     """Test that items can't be deleted through wrong zettel path"""
     item1 = test_items[0]
-    response = client.delete(
-        f'/zettel/{another_zettel.slug}/{item1.slug}/'
-    )
+    response = client.delete(f'/zettel/{another_zettel.slug}/{item1.slug}/')
     assert response.status_code == 404
 
     # Verify the item still exists
     assert Item.objects.filter(slug=item1.slug).exists()
 
 
-def test_hierarchical_access_control_toggle_item(test_zettel, another_zettel, test_items):
+def test_hierarchical_access_control_toggle_item(
+    test_zettel, another_zettel, test_items
+):
     """Test that items can't be toggled through wrong zettel path"""
     item1 = test_items[0]
     original_completed = item1.completed

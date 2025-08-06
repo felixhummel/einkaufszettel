@@ -1,0 +1,15 @@
+{
+  "items": [
+    {
+      "slug": "edeka",
+      "name": "Edeka",
+      "item_count": 0
+    },
+    {
+      "slug": "netto",
+      "name": "Netto",
+      "item_count": 0
+    }
+  ],
+  "count": 2
+}
