@@ -40,8 +40,11 @@ line-length = 79
 [tool.ruff.format]
 quote-style = "single"
 
-[tool.pyright]
-typeCheckingMode = "basic" # basedpyright less strict
+[tool.basedpyright]
+typeCheckingMode = "basic" # be less strict
+# pytest fixtures are not supported (yet)
+# https://github.com/DetachHead/basedpyright/issues/311
+reportUnusedParameter = false
 
 [tool.coverage.report]
 fail_under = 100
